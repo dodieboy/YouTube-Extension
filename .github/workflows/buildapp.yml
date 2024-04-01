@@ -22,6 +22,9 @@ jobs:
           xcrun agvtool new-version 4.8
           gem install xcpretty
           xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj | xcpretty && exit ${PIPESTATUS[0]}
+
+      - name: Zip File
+        run: |
           cd /Users/runner/work/release/ImprovedTube/build/Release/
           zip -r ImprovedTube-Safari.zip ImprovedTube.app
 
@@ -29,4 +32,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ImprovedTube-Safari
-          path: /Users/runner/work/release/ImprovedTube/build/Release/
+          path: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-Safari.zip
