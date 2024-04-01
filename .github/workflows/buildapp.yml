@@ -27,14 +27,20 @@ jobs:
           sed -i '' -e 's/MARKETING_VERSION \= [^\;]*\;/MARKETING_VERSION = ${{ env.VERSION }};/' ImprovedTube.xcodeproj/project.pbxproj
           xcrun agvtool new-version ${{ env.VERSION }}
           xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj
+        env:
+          VERSION: ${{ inputs.version }}
 
       - name: Zip File
         run: |
           cd /Users/runner/work/release/ImprovedTube/build/Release/
           zip -r ImprovedTube-${{ env.VERSION }}-Safari.zip ImprovedTube.app
+        env:
+          VERSION: ${{ inputs.version }}
 
       - name: Upload build version as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ImprovedTube-Safari
           path: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-${{ env.VERSION }}-Safari.zip
+        env:
+          VERSION: ${{ inputs.version }}
