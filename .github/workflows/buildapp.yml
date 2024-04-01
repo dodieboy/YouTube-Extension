@@ -19,7 +19,7 @@ jobs:
           xcrun safari-web-extension-converter main --macos-only --no-prompt --project-location /Users/runner/work/release --app-name ImprovedTube
           xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj
           cd /Users/runner/work/release/ImprovedTube/build/Release/
-          zip -r ImprovedTube-Safari.zip /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube.app
+          zip -r ImprovedTube-Safari.zip ImprovedTube.app
 
       - name: Upload build version as artifact
         uses: actions/upload-artifact@v4
