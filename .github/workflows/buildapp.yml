@@ -20,8 +20,7 @@ jobs:
           cd /Users/runner/work/release/ImprovedTube/
           sed -i '' -e 's/MARKETING_VERSION \= [^\;]*\;/MARKETING_VERSION = 4.8;/' ImprovedTube.xcodeproj/project.pbxproj
           xcrun agvtool new-version 4.8
-          gem install xcpretty
-          xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj | xcpretty && exit ${PIPESTATUS[0]}
+          xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj
 
       - name: Zip File
         run: |
