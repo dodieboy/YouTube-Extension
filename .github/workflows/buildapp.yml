@@ -1,3 +1,5 @@
+name: Create build for release
+
 jobs:
   build:
     name: Build
