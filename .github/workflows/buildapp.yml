@@ -24,23 +24,17 @@ jobs:
         run: |
           xcrun safari-web-extension-converter main --macos-only --no-open --force --swift --no-prompt --project-location /Users/runner/work/release --app-name ImprovedTube
           cd /Users/runner/work/release/ImprovedTube/
-          sed -i '' -e 's/MARKETING_VERSION \= [^\;]*\;/MARKETING_VERSION = ${{ env.VERSION }};/' ImprovedTube.xcodeproj/project.pbxproj
-          xcrun agvtool new-version ${{ env.VERSION }}
+          sed -i '' -e 's/MARKETING_VERSION \= [^\;]*\;/MARKETING_VERSION = ${{ inputs.version }};/' ImprovedTube.xcodeproj/project.pbxproj
+          xcrun agvtool new-version ${{ inputs.version }}
           xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj
-        env:
-          VERSION: ${{ inputs.version }}
 
       - name: Zip File
         run: |
           cd /Users/runner/work/release/ImprovedTube/build/Release/
-          zip -r ImprovedTube-${{ env.VERSION }}-Safari.zip ImprovedTube.app
-        env:
-          VERSION: ${{ inputs.version }}
+          zip -r ImprovedTube-${{ inputs.version }}-Safari.zip ImprovedTube.app
 
       - name: Upload build version as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ImprovedTube-Safari
-          path: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-${{ env.VERSION }}-Safari.zip
-        env:
-          VERSION: ${{ inputs.version }}
+          path: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-${{ inputs.version }}-Safari.zip
