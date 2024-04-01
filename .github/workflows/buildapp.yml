@@ -21,6 +21,7 @@ jobs:
           xcrun agvtool new-marketing-version 4.8
           xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj
           cd /Users/runner/work/release/ImprovedTube/build/Release/
+          xcrun agvtool new-marketing-version 4.8
           zip -r ImprovedTube-Safari.zip ImprovedTube.app
 
       - name: Upload build version as artifact
