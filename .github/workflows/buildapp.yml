@@ -19,7 +19,8 @@ jobs:
           xcrun safari-web-extension-converter main --macos-only --no-open --force --swift --no-prompt --project-location /Users/runner/work/release --app-name ImprovedTube
           cd /Users/runner/work/release/ImprovedTube/
           xcrun agvtool new-marketing-version 4.8
-          xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj
+          gem install xcpretty
+          xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj | xcpretty && exit ${PIPESTATUS[0]}
           cd /Users/runner/work/release/ImprovedTube/build/Release/
           zip -r ImprovedTube-Safari.zip ImprovedTube.app
 
