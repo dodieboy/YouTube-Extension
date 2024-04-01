@@ -1,0 +1,21 @@
+jobs:
+  build:
+    name: Build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v3
+        with:
+          path: main
+
+
+      - name: Build and Convert the release macOS version
+        run: |
+          npm run build
+          xcrun safari-web-extension-converter main --no-prompt --project-location /Users/runner/work/release
+
+      - name: Upload build version as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Improve YouTube-safari
+          path: /Users/runner/work/release/
