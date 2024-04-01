@@ -31,6 +31,7 @@ jobs:
       - name: Zip File
         run: |
           cd /Users/runner/work/release/ImprovedTube/build/Release/
+          % codesign -dv ImprovedTube.app
           zip -r ImprovedTube-${{ inputs.version }}-Safari.zip ImprovedTube.app
 
       - name: Upload build version as artifact
