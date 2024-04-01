@@ -27,4 +27,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ImprovedTube-Safari
-          path: /Users/runner/work/release/ImprovedTube/build/Release/output.txt
+          path: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-Safari.zip
