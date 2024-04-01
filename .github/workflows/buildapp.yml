@@ -36,5 +36,5 @@ jobs:
       - name: Upload build version as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ImprovedTube-Safari
+          name: ImprovedTube-${{ inputs.version }}-Safari
           path: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-${{ inputs.version }}-Safari.zip
