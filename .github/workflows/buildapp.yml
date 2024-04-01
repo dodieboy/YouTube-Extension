@@ -18,7 +18,7 @@ jobs:
         run: |
           xcrun safari-web-extension-converter main --macos-only --no-open --force --swift --no-prompt --project-location /Users/runner/work/release --app-name ImprovedTube
           xcodebuild -help
-          xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj
+          xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj -resultBundleVersion 4.8
           cd /Users/runner/work/release/ImprovedTube/build/Release/
           zip -r ImprovedTube-Safari.zip ImprovedTube.app
 
