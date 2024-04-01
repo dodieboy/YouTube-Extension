@@ -16,10 +16,11 @@ jobs:
 
       - name: Build and Convert the release macOS version
         run: |
-          xcrun safari-web-extension-converter main --no-prompt --project-location /Users/runner/work/release
+          xcrun safari-web-extension-converter main --macos-only --no-prompt --project-location /Users/runner/work/release --app-name ImprovedTube
+          xcodebuild -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj -target "ImprovedTube (macOS)" --archivePath /Users/runner/work/app
 
       - name: Upload build version as artifact
         uses: actions/upload-artifact@v3
         with:
           name: Improve YouTube-safari
-          path: /Users/runner/work/release/
+          path: /Users/runner/work/app
