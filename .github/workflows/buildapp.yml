@@ -8,9 +8,8 @@ on:
   #       default: ""
   #       required: true
   #       type: string
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -27,17 +26,17 @@ jobs:
         run: |
           xcrun safari-web-extension-converter main --macos-only --no-open --force --swift --no-prompt --project-location /Users/runner/work/release --app-name ImprovedTube --bundle-identifier ImprovedTube
           cd /Users/runner/work/release/ImprovedTube/
-          sed -i '' -e 's/MARKETING_VERSION \= [^\;]*\;/MARKETING_VERSION = ${{ inputs.version }};/' ImprovedTube.xcodeproj/project.pbxproj
-          xcrun agvtool new-version ${{ inputs.version }}
+          sed -i '' -e 's/MARKETING_VERSION \= [^\;]*\;/MARKETING_VERSION = ${{ github.ref_name }};/' ImprovedTube.xcodeproj/project.pbxproj
+          xcrun agvtool new-version ${{ github.ref_name }}
           xcodebuild -quiet -project /Users/runner/work/release/ImprovedTube/ImprovedTube.xcodeproj -configuration Release
 
       - name: Zip File
         run: |
           cd /Users/runner/work/release/ImprovedTube/build/Release/
-          zip -r ImprovedTube-${{ inputs.version }}-Safari.zip ImprovedTube.app
+          zip -r ImprovedTube-${{ github.ref_name }}-Safari.zip ImprovedTube.app
 
       - name: Upload build version as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ImprovedTube-${{ inputs.version }}-Safari
-          path: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-${{ inputs.version }}-Safari.zip
+          name: ImprovedTube-${{ github.ref_name }}-Safari
+          path: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-${{ github.ref_name }}-Safari.zip
