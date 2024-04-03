@@ -46,4 +46,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          file: "/Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube.app"
+          file: "/Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-${{ github.ref_name }}-Safari.zip"
