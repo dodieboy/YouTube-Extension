@@ -1,13 +1,16 @@
 name: Create Safari build for release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "version"
-        default: ""
-        required: true
-        type: string
+  # workflow_dispatch:
+  #   inputs:
+  #     version:
+  #       description: "version"
+  #       default: ""
+  #       required: true
+  #       type: string
+  push:
+    tags:
+      - "v*"
 
 jobs:
   build:
