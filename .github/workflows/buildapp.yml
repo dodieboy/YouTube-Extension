@@ -40,3 +40,10 @@ jobs:
         with:
           name: ImprovedTube-${{ github.ref_name }}-Safari
           path: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-${{ github.ref_name }}-Safari.zip
+
+      - name: upload to release
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: "/Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube.app"
