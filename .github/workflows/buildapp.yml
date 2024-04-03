@@ -42,7 +42,7 @@ jobs:
       #     path: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-v${{ github.ref_name }}-Safari.zip
 
       - name: Upload build to Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: ${{startsWith(github.ref, 'refs/tags/') }}
         with:
           files: /Users/runner/work/release/ImprovedTube/build/Release/ImprovedTube-v${{ github.ref_name }}-Safari.zip
