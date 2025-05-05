@@ -2162,3 +2162,15 @@ html .yt-spec-button-shape-next__icon ytd-lottie-player svg path[fill-opacity="1
 html .yt-spec-button-shape-next__icon ytd-lottie-player svg path[fill-opacity="0"] {
 	stroke: var(--yt-spec-text-primary);
 }
+
+html #contents .ytd-rich-grid-renderer{
+	--ytd-rich-grid-items-per-row: 5 !important;
+	--ytd-rich-grid-posts-per-row: 5 !important;
+}
+
+html #contents .ytd-rich-shelf-renderer{
+	--ytd-rich-grid-items-per-row: 7 !important;
+	--ytd-rich-grid-slim-items-per-row: 7 !important;
+	--ytd-rich-grid-game-cards-per-row: 7 !important;
+	--ytd-rich-shelf-items-count: 7 !important;
+}
