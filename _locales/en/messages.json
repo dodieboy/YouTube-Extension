@@ -1,6 +1,10 @@
-{  
-  "hideSuggestedAction": { "message": "Hide Suggested Action 'View products'" },
-  "hideMerchShelf": { "message": "Hide 'Merch Shelf'" },
+{
+  "hideSuggestedAction": {
+    "message": "Hide Suggested Action 'View products'"
+  },
+  "hideMerchShelf": {
+    "message": "Hide 'Merch Shelf'"
+  },
   "about": {
     "message": "About"
   },
@@ -438,6 +442,9 @@
   },
   "disableThumbnailPlayback": {
     "message": "Disable video playback on hover"
+  },
+  "muteThumbnailPreviews": {
+    "message": "Mute thumbnail previews"
   },
   "dislike": {
     "message": "Dislike"
@@ -1228,6 +1235,9 @@
   "removeShortsReelSearchResults": {
     "message": "Remove Shorts reel from search results"
   },
+  "removeSubscriptionsMostRelevant": {
+    "message": "Hide 'Most relevant' section on Subscriptions page"
+  },
   "RemoveSubtitlesForLyrics": {
     "message": "Remove subtitles for lyrics"
   },
@@ -1614,5 +1624,38 @@
   },
   "youtubesLight": {
     "message": "YouTube's Light"
+  },
+  "smartSpeedEngine": {
+    "message": "Smart Speed Engine"
+  },
+  "smartSpeedEnable": {
+    "message": "Enable Smart Speed"
+  },
+  "smartSpeedIndicator": {
+    "message": "Show On-Screen Indicator"
+  },
+  "smartSpeedMin": {
+    "message": "Min Speed (Peaks)"
+  },
+  "smartSpeedMax": {
+    "message": "Max Speed (Troughs)"
+  },
+  "smartSpeedSensitivity": {
+    "message": "Sensitivity"
+  },
+  "smartSpeedTargetToggle": {
+    "message": "Enable Target Duration"
+  },
+  "smartSpeedTargetMinutes": {
+    "message": "Target Length (Minutes)"
+  },
+  "smartSpeedProfiles": {
+    "message": "Category & Channel Profiles"
+  },
+  "smartSpeedAddProfile": {
+    "message": "Add Channel Profile"
+  },
+  "smartSpeedWhitelisted": {
+    "message": "Channel Whitelisted for Smart Speed!"
   }
 }
