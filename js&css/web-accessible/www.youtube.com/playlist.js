@@ -4,73 +4,51 @@
 /*------------------------------------------------------------------------------
 4.5.1 UP NEXT AUTOPLAY
 ------------------------------------------------------------------------------*/
-ImprovedTube.playlistUpNextAutoplay = function () { 
+ImprovedTube.playlistUpNextAutoplay = function () {
 	if (this.storage.playlist_up_next_autoplay === false) {
 		const playlistData = this.elements.ytd_watch?.playlistData;
 		if (this.getParam(location.href, 'list') && playlistData
 			&& playlistData.currentIndex
 			&& playlistData.totalVideos
 			&& playlistData.localCurrentIndex) {
-			
-			// Fix for large playlists: ensure proper synchronization instead of forcing end
-			// YouTube loads playlists in chunks (typically 200 videos), so we need to 
-			// keep currentIndex and localCurrentIndex in sync as new segments load
-			if (playlistData.currentIndex !== playlistData.localCurrentIndex) {
-				playlistData.currentIndex = playlistData.localCurrentIndex;
-			}
-			
-			// Monitor for playlist data updates to handle pagination
-			if (!this.playlistAutoplayObserver) {
-				this.playlistAutoplayObserver = new MutationObserver((mutations) => {
-					mutations.forEach((mutation) => {
-						if (mutation.type === 'attributes' && 
-							mutation.attributeName === 'data' && 
-							this.elements.ytd_watch?.playlistData) {
-							
-							const updatedData = this.elements.ytd_watch.playlistData;
-							// Resync when YouTube loads new playlist segments
-							if (updatedData.currentIndex !== updatedData.localCurrentIndex) {
-								updatedData.currentIndex = updatedData.localCurrentIndex;
-							}
-						}
-					});
-				});
-				
-				// Observe the watch element for playlist data changes
-				if (this.elements.ytd_watch) {
-					this.playlistAutoplayObserver.observe(this.elements.ytd_watch, {
-						attributes: true,
-						attributeFilter: ['data']
-					});
-				}
-			}
-		}
-	} else {
-		// Clean up observer when feature is enabled
-		if (this.playlistAutoplayObserver) {
-			this.playlistAutoplayObserver.disconnect();
-			this.playlistAutoplayObserver = null;
+			// Prevent autoplay by telling YouTube we're at the end of the playlist
+			playlistData.currentIndex = playlistData.totalVideos;
 		}
 	}
 };
 
-// Enhanced playlist navigation handler for large playlists
+// Playlist navigation handler for large playlists (400+ videos).
+// YouTube loads playlist metadata in chunks (~200 videos), causing
+// currentIndex and localCurrentIndex to desync at chunk boundaries.
+// This handler keeps them in sync so autoplay continues working.
+// Only runs when playlist_up_next_autoplay is NOT disabled.
 ImprovedTube.playlistLargePlaylistHandler = function() {
 	if (!this.getParam(location.href, 'list')) return;
-	
+
+	// Do not sync indices if the user has disabled playlist autoplay,
+	// because playlistUpNextAutoplay intentionally sets currentIndex
+	// to totalVideos to prevent the next video from playing.
+	if (this.storage.playlist_up_next_autoplay === false) {
+		this.cleanupPlaylistHandlers();
+		return;
+	}
+
 	const playlistData = this.elements.ytd_watch?.playlistData;
 	if (!playlistData) return;
-	
+
 	// Monitor video changes to handle large playlist navigation
 	const videoElement = this.elements.player?.querySelector('video');
 	if (videoElement && !this.playlistVideoChangeListener) {
 		this.playlistVideoChangeListener = () => {
+			// Re-check the setting in case it changed mid-session
+			if (this.storage.playlist_up_next_autoplay === false) return;
+
 			setTimeout(() => {
 				const currentData = this.elements.ytd_watch?.playlistData;
 				if (currentData && currentData.currentIndex !== currentData.localCurrentIndex) {
-					// Force synchronization when video changes
+					// Sync indices when YouTube loads new playlist segments
 					currentData.currentIndex = currentData.localCurrentIndex;
-					
+
 					// Update the player's playlist manager if available
 					const playlistManager = document.querySelector('yt-playlist-manager');
 					if (playlistManager && playlistManager.autoplayData) {
@@ -79,23 +57,24 @@ ImprovedTube.playlistLargePlaylistHandler = function() {
 				}
 			}, 100);
 		};
-		
+
 		videoElement.addEventListener('loadedmetadata', this.playlistVideoChangeListener);
 		videoElement.addEventListener('play', this.playlistVideoChangeListener);
 	}
-	
-	// Cleanup function for when navigating away from playlist pages
-	this.cleanupPlaylistHandlers = function() {
-		if (this.playlistAutoplayObserver) {
-			this.playlistAutoplayObserver.disconnect();
-			this.playlistAutoplayObserver = null;
-		}
-		if (this.playlistVideoChangeListener && videoElement) {
-			videoElement.removeEventListener('loadedmetadata', this.playlistVideoChangeListener);
-			videoElement.removeEventListener('play', this.playlistVideoChangeListener);
-			this.playlistVideoChangeListener = null;
-		}
-	};
+};
+
+// Cleanup function for when navigating away from playlist pages
+ImprovedTube.cleanupPlaylistHandlers = function() {
+	if (this.playlistAutoplayObserver) {
+		this.playlistAutoplayObserver.disconnect();
+		this.playlistAutoplayObserver = null;
+	}
+	const videoElement = this.elements.player?.querySelector('video');
+	if (this.playlistVideoChangeListener && videoElement) {
+		videoElement.removeEventListener('loadedmetadata', this.playlistVideoChangeListener);
+		videoElement.removeEventListener('play', this.playlistVideoChangeListener);
+		this.playlistVideoChangeListener = null;
+	}
 };
 /*------------------------------------------------------------------------------
 4.5.2 REVERSE
@@ -122,13 +101,8 @@ ImprovedTube.injectReverseButton = function() {
 		path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 
 	button.id = 'it-reverse-playlist';
-	button.className = 'style-scope yt-icon-button';
+	button.className = 'style-scope yt-icon-button' + (ImprovedTube.playlistReversed ? ' active' : '');
 	button.title = 'Reverse Playlist';
-	
-	// Restore active state if persisted
-	if (ImprovedTube.playlistReversed === true || ImprovedTube.storage.playlist_reversed_active === true) {
-		button.classList.add('active');
-	}
 	
 	button.addEventListener('click', function (event) {
 		event.preventDefault();
@@ -140,39 +114,8 @@ ImprovedTube.injectReverseButton = function() {
 		// Persist via messaging (Fix #1836)
 		ImprovedTube.messages.send({action: 'set', key: 'playlist_reversed_active', value: ImprovedTube.playlistReversed});
 
-		// Execute reverse
-		if (ImprovedTube.elements.ytd_watch?.data?.contents?.twoColumnWatchNextResults) {
-			var results = ImprovedTube.elements.ytd_watch.data.contents.twoColumnWatchNextResults,
-				playlist = results.playlist?.playlist,
-				autoplay = results.autoplay?.autoplay;
-			
-			if (playlist && autoplay) {
-				playlist.contents.reverse();
-				playlist.currentIndex = playlist.totalVideos - playlist.currentIndex - 1;
-				playlist.localCurrentIndex = playlist.contents.length - playlist.localCurrentIndex - 1;
+		ImprovedTube.playlistReverseUpdate(); ImprovedTube.expandDescription();
 
-				for (var i = 0, l = autoplay.sets.length; i < l; i++) {
-					var item = autoplay.sets[i];
-					item.autoplayVideo = item.previousButtonVideo;
-					item.previousButtonVideo = item.nextButtonVideo;
-					item.nextButtonVideo = item.autoplayVideo;
-				}
-
-				ImprovedTube.elements.ytd_watch.updatePageData_(JSON.parse(JSON.stringify(ImprovedTube.elements.ytd_watch.data)));
-
-				setTimeout(function () {
-					var playlist_manager = document.querySelector('yt-playlist-manager');
-					if (playlist_manager) {
-						ImprovedTube.elements.ytd_player.updatePlayerComponents(null, autoplay, null, playlist);
-						playlist_manager.autoplayData = autoplay;
-						playlist_manager.setPlaylistData(playlist);
-						ImprovedTube.elements.ytd_player.updatePlayerPlaylist_(playlist);
-					}
-				}, 100);
-			}
-		}
-		
-		ImprovedTube.expandDescription();
 		return false;
 	}, true);
 
@@ -186,31 +129,73 @@ ImprovedTube.injectReverseButton = function() {
 	container.appendChild(button);
 };
 
-// Fix #1836: MutationObserver for perpetual rendering
+ImprovedTube.playlistReverseUpdate = function () {
+	var results = ImprovedTube.elements.ytd_watch?.data?.contents?.twoColumnWatchNextResults,
+		playlist = results?.playlist?.playlist,
+		autoplay = results?.autoplay?.autoplay;
+
+	if (!playlist || !autoplay) return;
+
+	// Use idempotent flag to prevent double reversal (Fix #3733)
+	var isCurrentlyReversed = playlist.it_reversed === true;
+	var shouldBeReversed = ImprovedTube.playlistReversed === true;
+	if (isCurrentlyReversed === shouldBeReversed) {
+		return;
+	}
+	playlist.it_reversed = shouldBeReversed;
+
+	playlist.contents.reverse();
+
+	playlist.currentIndex = playlist.totalVideos - playlist.currentIndex - 1;
+	playlist.localCurrentIndex = playlist.contents.length - playlist.localCurrentIndex - 1;
+
+	for (var i = 0, l = autoplay.sets.length; i < l; i++) {
+		var item = autoplay.sets[i];
+		item.autoplayVideo = item.previousButtonVideo;
+		item.previousButtonVideo = item.nextButtonVideo;
+		item.nextButtonVideo = item.autoplayVideo;
+	}
+
+	ImprovedTube.elements.ytd_watch.updatePageData_(JSON.parse(JSON.stringify(ImprovedTube.elements.ytd_watch.data)));
+
+	setTimeout(function () {
+		var playlist_manager = document.querySelector('yt-playlist-manager');
+		if (playlist_manager) {
+			ImprovedTube.elements.ytd_player.updatePlayerComponents(null, autoplay, null, playlist);
+			playlist_manager.autoplayData = autoplay;
+			playlist_manager.setPlaylistData(playlist);
+			ImprovedTube.elements.ytd_player.updatePlayerPlaylist_(playlist);
+		}
+	}, 100);
+};
+
 ImprovedTube.playlistReverseObserver = null;
 
 ImprovedTube.playlistReverse = function () {
-	// Initial injection attempt
-	ImprovedTube.injectReverseButton();
-	
-	// Set up MutationObserver to re-inject if button is removed by YouTube UI refresh
-	if (!ImprovedTube.playlistReverseObserver) {
-		var targetNode = document.querySelector('ytd-playlist-panel-renderer') 
-			|| document.querySelector('ytd-watch-flexy') 
-			|| document.body;
+	if (this.storage.playlist_reverse === true) {
+		ImprovedTube.injectReverseButton();
 		
-		if (targetNode) {
-			ImprovedTube.playlistReverseObserver = new MutationObserver(function(mutations) {
-				// Check if button is missing and re-inject
-				if (!document.querySelector('#it-reverse-playlist')) {
-					ImprovedTube.injectReverseButton();
-				}
-			});
+		if (ImprovedTube.playlistReversed === true) {
+			ImprovedTube.playlistReverseUpdate();
+		}
+
+		if (!ImprovedTube.playlistReverseObserver) {
+			var targetNode = document.querySelector('ytd-playlist-panel-renderer') 
+				|| document.querySelector('ytd-watch-flexy') 
+				|| document.body;
 			
-			ImprovedTube.playlistReverseObserver.observe(targetNode, {
-				childList: true,
-				subtree: true
-			});
+			if (targetNode) {
+				ImprovedTube.playlistReverseObserver = new MutationObserver(function(mutations) {
+					if (!document.querySelector('#it-reverse-playlist')) {
+						ImprovedTube.injectReverseButton();
+					}
+				});
+				
+				ImprovedTube.playlistReverseObserver.observe(targetNode, {
+					childList: true,
+					subtree: true
+				});
+			}
 		}
 	}
 };

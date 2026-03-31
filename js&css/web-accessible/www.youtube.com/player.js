@@ -7,9 +7,7 @@ ImprovedTube.autoplayDisable = function (videoElement) {
 		|| this.storage.channel_trailer_autoplay === false) {
 		const player = this.elements.player || videoElement.closest('.html5-video-player') || videoElement.closest('#movie_player'); // #movie_player: outdated since 2024?
 
-		if (this.video_url !== location.href) {	this.user_interacted = false; }
-
-		//if (there is a player) and (no user clicks) and (no ads playing) 
+		//if (there is a player) and (no user clicks) and (no ads playing)
 		// and( ((auto play is off and it is not in a playlist)
 		//   	 or (playlist auto play is off and in a playlist))
 		//   	 or (we are in a channel and the channel trailer autoplay is off)  )
@@ -2856,3 +2854,21 @@ window.addEventListener('keydown', (e) => {
         ImprovedTube.heatmap.jumpToNextPeak();
     }
 });
+
+/*------------------------------------------------------------------------------
+Hide Pause Overlay
+------------------------------------------------------------------------------*/
+function hidePauseOverlay(){
+  if(!document.getElementById('it-hide-pause-overlay')){
+    const s=document.createElement('style');
+    s.id='it-hide-pause-overlay';
+    s.textContent='.ytp-pause-overlay-container,.ytp-autonav-endscreen-container,.ytp-endscreen-content{display:none!important}';
+    document.documentElement.appendChild(s);
+  }
+  const f=()=>document.querySelectorAll('tp-yt-paper-dialog[role="dialog"]').forEach(e=>/continue watching|video paused/i.test(e.textContent)&&e.remove());
+  f();
+  if(!window.hidePauseOverlayObserver){
+    window.hidePauseOverlayObserver=new MutationObserver(f);
+    window.hidePauseOverlayObserver.observe(document.body,{childList:true,subtree:true});
+  }
+}
