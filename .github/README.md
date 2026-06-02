@@ -65,7 +65,7 @@ For info on how to contribute, see the <a href="https://github.com/code-for-char
 <code><a href="https://github.com/ImprovedTube/ImprovedTube/blob/master/_locales/zh_CN/messages.json" title="中文 (简体)">CN(zh_CN)</a></code> :
 <a href="https://github.com/niceRAM" title="✨🏆"><code>niceRAM</code></a> 
 <a href="https://github.com/ausers"><code>ausers</code></a><br>
-<a href="https://github.com/FlootingDream"><code>FlootingDream</code></a><br>
+<a href="https://github.com/FlootingDream"><code>FlootingDream</code></a> 
 <a href="https://github.com/Dovahseod" title="✨🏆"><code>Dovahseod</code></a><br>
 <code><a href="https://github.com/ImprovedTube/ImprovedTube/blob/master/_locales/zh_TW/messages.json" title="中文 (繁體)">CN(zh_TW)</a></code> :
 <a href="https://github.com/Still34" title="✨🏆"><code>Still34</code></a> 
@@ -98,7 +98,8 @@ For info on how to contribute, see the <a href="https://github.com/code-for-char
 <a href="https://github.com/Mike-Correa"><code>Mike-Correa</code></a>
 <a href="https://github.com/DavidBrazSan"><code>DavidBrazSan</code></a></br>
 <a href="https://github.com/unnamed-orbert"><code>unnamed-orbert :)</code></a>
-<a href="https://github.com/pecazeco"><code>pecazeco</code></a><br>
+<a href="https://github.com/pecazeco"><code>pecazeco</code></a>
+<a href="https://github.com/michellegalindo"><code>michellegalindo</code></a><br>
 <code><a href="https://github.com/ImprovedTube/ImprovedTube/blob/master/_locales/pt_PT/messages.json" title="Português">PT</a></code> :
 <a href="https://github.com/DrNopt"><code>DrNopt</code></a>
 <a href="https://github.com/unnamed-orbert"><code>unnamed-orbert</code></a>
@@ -206,11 +207,16 @@ Chinese + Hindi + Spanish. <br></i>
 <br> (=here), or on ​<a href="https://crowdin.com/project/1655556">Crowdin</a></div>
 </td></tr></table><hr>
 
-#### 💡 [**<code>History Manager Extension</code>**](https://chrome.google.com/webstore/detail/unblob-alpha/odognhgojidbcgconbcipmgffjcmfaoj)<a href="https://github.com/code-for-charity/history-manager"><img src="github.png" width="20px" height="18px"></a>
-### 💡 🌱 [List of new project plans / Ideas ](https://github.com/code-charity/List-of-Ideas/discussions/2) 
-###### [<code>Wish-Factory</code>](https://github.com/code-for-charity/wish-factory "💡") Got great/er ideas? ideas@improvedtube.com
-###### [<code>Crowd Fixes</code>](https://github.com/code-charity/Universal-UserTweaks) - We can optimize the www's GUI and greatly prioritized. <i> Instead of only tweaking some uBlock or Sylish rules for oneself (which is not always worth it for a single user, if something changes soon.)</i>
-###### [`Contributor Bot`](https://github.com/code4charity/Open-Source-Bot--Github-Git-Pull-Request-Bot) - Vision for Open-Source Efficiency.  (Compare: Wikipedia Bots. Would especially help medium-size projects.) (+[list of regEx](https://github.com/code4charity/the-RegEx-Collector--Queries--Patterns " - ")?)  
+💡 [**<code>History Manager Extension</code>**](https://chrome.google.com/webstore/detail/unblob-alpha/odognhgojidbcgconbcipmgffjcmfaoj)<a href="https://github.com/code-for-charity/history-manager"><img src="github.png" width="20px" height="18px"></a>
+
+🌱 [<code>Wish-Factory</code>](https://github.com/code-for-charity/wish-factory "💡") Got great/er ideas? ideas@improvedtube.com
+
+🌱 [<code>Crowd Fixes</code>](https://github.com/code-charity/Universal-UserTweaks) - We can optimize the www's GUI and greatly prioritized. <i> Instead of only tweaking some uBlock or 
+Sylish rules for oneself (which is not always worth it for a single user, if something changes soon.)</i>
+
+🌱 [`Contributor Bot`](https://github.com/code4charity/Open-Source-Bot--Github-Git-Pull-Request-Bot) - Vision for Open-Source Efficiency.  (Compare: Wikipedia Bots. Would especially help medium-size projects.) (+[list of regEx](https://github.com/code4charity/the-RegEx-Collector--Queries--Patterns " - ")?)  
+
+🌱 [List of new project plans / Ideas ](https://github.com/code-charity/List-of-Ideas/discussions/2); GSoC 2027? (Google summer of Code)
 
 <h4> <code>🎁</code>Our Extensions:</h4></summary>
 

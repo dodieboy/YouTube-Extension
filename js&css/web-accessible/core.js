@@ -36,7 +36,7 @@ var ImprovedTube = {
 		channel_home_page_postfix: /\/(featured)?\/?$/,
 		thumbnail_quality: /(default\.jpg|mqdefault\.jpg|hqdefault\.jpg|hq720\.jpg|sddefault\.jpg|maxresdefault\.jpg)+/,
 		video_id: /(?:[?&]v=|embed\/|shorts\/)([^&?]{11})/,
-		video_time: /[?&](?:t|start)=([^&]+)|#t=(\w+)/,
+		video_time: /[?&](?:t|start|stop)=([^&]+)|#t=(\w+)/,
 		playlist_id: /[?&]list=([^&]+)/,
 		channel_link: /https:\/\/www.youtube.com\/@|((channel|user|c)\/)/
 	},
@@ -183,6 +183,10 @@ document.addEventListener('it-message-from-extension', function () {
 		if (message.action === 'storage-loaded') {
 			ImprovedTube.storage = message.storage;
 
+			if (typeof ImprovedTube.storage.playlist_reversed_active !== 'undefined') {
+				ImprovedTube.playlistReversed = ImprovedTube.storage.playlist_reversed_active;
+			}
+			
 			if (ImprovedTube.storage.block_vp9 || ImprovedTube.storage.block_av1 || ImprovedTube.storage.block_h264) {
 				let atlas = { block_vp9: 'vp9|vp09', block_h264: 'avc1', block_av1: 'av01' },
 					codec = Object.keys(atlas).reduce(function (all, key) {
@@ -361,7 +365,9 @@ document.addEventListener('it-message-from-extension', function () {
 				case 'playerIncreaseDecreaseSpeedButtons':
 					if (ImprovedTube.storage.player_increase_decrease_speed_buttons === false) {
 						ImprovedTube.elements.buttons['it-increase-speed-button']?.remove();
+						ImprovedTube.elements.buttons['it-1x-speed-button']?.remove();
 						ImprovedTube.elements.buttons['it-decrease-speed-button']?.remove();
+						ImprovedTube.elements.buttons['it-1x-speed-button']?.remove();
 					}
 					break
 
@@ -513,6 +519,11 @@ document.addEventListener('it-message-from-extension', function () {
 				case 'disableAutoDubbing':
 					if (ImprovedTube.storage.disable_auto_dubbing === true) {
 						ImprovedTube.disableAutoDubbing();
+					}
+					break
+				case 'player_default_dubbed_language':
+					if (ImprovedTube.storage.player_default_dubbed_language && ImprovedTube.storage.player_default_dubbed_language !== 'disabled') {
+						ImprovedTube.selectDubbedLanguage();
 					}
 					break
 				case  'smartSpeed':           

@@ -1,4 +1,7 @@
 {
+  "preferredDubbingLanguage": {
+		"message": "Preferred dubbing language"
+	},
   "hideSuggestedAction": {
     "message": "Hide Suggested Action 'View products'"
   },
@@ -112,6 +115,9 @@
   },
   "atSubscriptions": {
     "message": "at 'Subscriptions'"
+  },
+  "removeSubscriptionsLiveStreams": {
+    "message": "Hide live streams at 'Subscriptions'"
   },
   "atTrending": {
     "message": "at 'Trending'"
@@ -1127,6 +1133,9 @@
   "popupWindowButtons": {
     "message": "Add a popup-player-button to each thumbnail"
   },
+  "watchLaterButtons": {
+    "message": "Add a Watch Later button to thumbnails"
+  },
   "position": {
     "message": "Position"
   },
@@ -1355,6 +1364,9 @@
   "showChannelVideosCount": {
     "message": "Show channel videos count"
   },
+  "ccIndicator": {
+    "message": "Restore CC (subtitles) indicator on channel Videos page"
+  },
   "showExactDate": {
     "message": "Show Exact Date"
   },
@@ -1393,6 +1405,9 @@
   },
   "squaredUserImages": {
     "message": "Squared user images"
+  },
+  "squaredThumbnails": {
+    "message": "Squared thumbnails"
   },
   "static": {
     "message": "Static"
@@ -1472,8 +1487,17 @@
   "thumbnails": {
     "message": "Thumbnails"
   },
+  "thumbnailGrayscale":{
+    "message":"Thumbnail Grayscale"
+  },
   "thumbnailSize": {
     "message": "Thumbnail Size"
+  },
+  "largerThumbnailMetadata": {
+    "message": "Larger thumbnail metadata (channel, views, age)"
+  },
+  "classicThumbnailMetadata": {
+    "message": "Classic thumbnail metadata (X views · Y months ago)"
   },
   "thumbnailsQuality": {
     "message": "Thumbnails Quality"

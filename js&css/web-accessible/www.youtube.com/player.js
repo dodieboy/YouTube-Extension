@@ -1,51 +1,26 @@
 /*------------------------------------------------------------------------------
-AUTOPLAY DISABLE
-------------------------------------------------------------------------------*/
-ImprovedTube.autoplayDisable = function (videoElement) {
-	if (this.storage.player_autoplay_disable
-		|| this.storage.playlist_autoplay === false
-		|| this.storage.channel_trailer_autoplay === false) {
-		const player = this.elements.player || videoElement.closest('.html5-video-player') || videoElement.closest('#movie_player'); // #movie_player: outdated since 2024?
-
-		//if (there is a player) and (no user clicks) and (no ads playing)
-		// and( ((auto play is off and it is not in a playlist)
-		//   	 or (playlist auto play is off and in a playlist))
-		//   	 or (we are in a channel and the channel trailer autoplay is off)  )
-
-		if (player && !this.user_interacted // (=user didnt click or type)
-			&& !player.classList.contains('ad-showing') // (=no ads playing, needs an update?)
-			&& ((location.href.includes('/watch?') // #1703 // (=video page)
-				// player_autoplay_disable & not playlist
-				&& (this.storage.player_autoplay_disable && !location.href.includes('list='))
-				// !playlist_autoplay & playlist
-				|| (this.storage.playlist_autoplay === false && location.href.includes('list=')))
-				// channel homepage & !channel_trailer_autoplay
-				|| (this.storage.channel_trailer_autoplay === false && this.regex.channel.test(location.href)
-				   && !/\/(videos|shorts|playlists|community|channels|about|posts|streams|releases)$/.test(location.href) )
-			   )) {
-
-			setTimeout(function () {
-				try { player.pauseVideo(); } catch (error) { console.log("autoplayDisable: Pausing"); videoElement.pause(); }
-			});
-		} else {
-			document.dispatchEvent(new CustomEvent('it-play'));
-		}
-	} else {
-		document.dispatchEvent(new CustomEvent('it-play'));
-	}
-};
-/*------------------------------------------------------------------------------
 FORCED PLAY VIDEO FROM THE BEGINNING
 ------------------------------------------------------------------------------*/
 ImprovedTube.forcedPlayVideoFromTheBeginning = function () {
-	const player = this.elements.player,
-		video = this.elements.video,
-		paused = video?.paused;
-
+	const player = this.elements.player,		video = this.elements.video,		paused = video?.paused;
+ const t = this.video_url.match(this.regex.video_time)?.[1]; 
+	if (t) {
+		if (/[#&]stop=|#t=/.test(this.video_url)) return;
+		const r = document.referrer || ""; if (r && !r.includes("youtube.com")) return;
+		const h = history || ""; if (h && (h.length === 1 || !h.state?.endpoint?.watchEndpoint)) return;
+	}	
 	if (player && video && this.storage.forced_play_video_from_the_beginning && location.pathname == '/watch') {
-		player.seekTo(0);
-		// restore previous paused state
-		if (paused) { player.pauseVideo(); }
+		// Skip the seek when the video is effectively already at 0. When
+		// YouTube's own playback starts at 0 (fresh video, never watched), a
+		// seekTo(0) after page load produces an audible "double play" of the
+		// opening moments. Only seek when YouTube has resumed from a saved
+		// timestamp (currentTime > 0), which is the case this setting exists
+		// to override.
+		if (video.currentTime > 1.1) {  // video.currentTime = 0; #262
+			player.seekTo(0); 
+			// restore previous paused state after the seek
+			if (paused) { player.pauseVideo(); }
+		}
 	}
 };
 /*------------------------------------------------------------------------------
@@ -190,16 +165,22 @@ ImprovedTube.playerPlaybackSpeed = function () { if (this.storage.player_forced_
 				)	{ player.setPlaybackRate(1); video.playbackRate = 1; console.log ("...,thus must be music?"); }
 				else { 	// Now this video might rarely be music
 					// - however we can make extra-sure after waiting for the video descripion to load... (#1539)
-					var tries = 0; 	var intervalMs = 210; if (location.href.indexOf('/watch?') !== -1) {var maxTries = 10;} else {var maxTries = 0;}
-					// ...except when it is an embedded player?
-					var waitForDescription = setInterval(() => {
-						if (++tries >= maxTries) {
-							subtitle = document.querySelector('#title + #subtitle:last-of-type')
-							if ( subtitle && 1 <= Number((subtitle?.innerHTML?.match(/^\d+/) || [])[0])	// indicates buyable/registered music (amount of songs)
-						 && typeof testSongDuration(DATA.lengthSeconds, Number((subtitle?.innerHTML?.match(/^\d+/) || [])[0]) ) !== 'undefined' ) // resonable duration
-							{player.setPlaybackRate(1); video.playbackRate = 1; console.log("...but YouTube shows music below the description!"); clearInterval(waitForDescription); }
-							intervalMs *= 1.11;	}}, intervalMs);
-					window.addEventListener('load', () => { setTimeout(() => { clearInterval(waitForDescription); }, 1234); });
+					if (location.href.indexOf('/watch?') !== -1) {
+						let tries = 0;
+						const intervalMs = 210;
+						const maxTries = 10;
+						const waitForDescription = setInterval(() => {
+							const subtitle = document.querySelector('#title + #subtitle:last-of-type');
+							// console.log("[SPEED] checking for music keywords in the description... try " + tries + "// subtitle: " + subtitle?.innerHTML);
+							const descriptionSongCount = Number((subtitle?.innerHTML?.match(/^\d+/) || [])[0]);
+							if (subtitle && 1 <= descriptionSongCount && typeof testSongDuration(DATA.lengthSeconds, descriptionSongCount) !== 'undefined')
+							{player.setPlaybackRate(1); video.playbackRate = 1; console.log("...but YouTube shows music below the description!"); clearInterval(waitForDescription); return; }
+							if (++tries >= maxTries) {
+								// console.log("[SPEED] max tries reached, stopping description check...");
+								clearInterval(waitForDescription);
+							}
+						}, intervalMs);
+					}
 				}
 			}
 			//DATA  (TO-DO: make the Data available to more/all features? #1452  #1763  (Then can replace ImprovedTube.elements.category === 'music', VideoID is also used elsewhere)
@@ -222,12 +203,12 @@ const waitForVideoTitle = setInterval(() => { const title = ImprovedTube.videoTi
 if (title && title !== 'YouTube') {
     clearInterval(waitForVideoTitle);
 			 DATA.videoID = ImprovedTube.videoId() || false;     // console.log("SPEED: TITLE:" + ImprovedTube.videoTitle() + DATA.title); 
-			 if ( DATA.title === ImprovedTube.videoTitle() || DATA.title.replace(/\s{2,}/g, ' ') === ImprovedTube.videoTitle() )
+			 if ( DATA.title && (DATA.title === ImprovedTube.videoTitle() || DATA.title.replace(/\s{2,}/g, ' ') === ImprovedTube.videoTitle()) )
 				{ keywords = document.querySelector('meta[name="keywords"]')?.content || ''; ImprovedTube.speedException(); }
 				else { keywords = ''; (async function () { try { const response = await fetch(`https://www.youtube.com/watch?v=${DATA.videoID}`);
 					console.log("loading the html source:" + `https://www.youtube.com/watch?v=${DATA.videoID}`);
 					const htmlContent = await response.text();
-					const metaRegex = /<meta[^>]+(name|itemprop)=["'](keywords|genre|duration)["'][^>]+content=["']([^"']+)["'][^>]*>/gi;
+					const metaRegex = /<meta[^>]+(?:name|itemprop)=["'](keywords|genre|duration|title)["'][^>]+content=["']([^"']+)["'][^>]*>/gi;
 					let match; while ((match = metaRegex.exec(htmlContent)) !== null) { // console.log(match);
 						const [, property, value] = match;
 						if (property === 'keywords') { keywords = value;} else {DATA[property] = value;}
@@ -809,7 +790,9 @@ ImprovedTube.screenshot = function () {
 		} else {
 			let a = document.createElement('a');
 			a.href = URL.createObjectURL(blob);
-			a.download = (ImprovedTube.videoId() || location.href.match) + ' ' + new Date(ImprovedTube.elements.player.getCurrentTime() * 1000).toISOString().substr(11, 8).replace(/:/g, '-') + ' ' + ImprovedTube.videoTitle() + (subText ? ' - ' + subText.trim() : '') + '.png';
+			const channelNameEl = document.querySelector('.ytd-channel-name a') || document.querySelector('#upload-info .ytd-channel-name');
+			const channelName = channelNameEl ? channelNameEl.textContent.trim() : '';
+			a.download = (ImprovedTube.videoId() || location.href.match) + ' ' + new Date(ImprovedTube.elements.player.getCurrentTime() * 1000).toISOString().substr(11, 8).replace(/:/g, '-') + (channelName ? ' ' + channelName : '') + ' ' + ImprovedTube.videoTitle() + (subText ? ' - ' + subText.trim() : '') + '.png';
 			a.click();
 			console.log("ImprovedTube: Screeeeeeenshot tada!");
 		}
@@ -1242,9 +1225,20 @@ ImprovedTube.playerCinemaModeButton = function () {
 					zIndex = 10000;
 				}
 
-				if (playerContainer) playerContainer.style.zIndex = zIndex;
-				if (playerContainerDefault)
+				var ytdPlayer = document.getElementById('ytd-player');
+
+				if (playerContainer) {
+					playerContainer.style.zIndex = zIndex;
+					playerContainer.style.position = zIndex === 10000 ? 'relative' : '';
+				}
+				if (playerContainerDefault) {
 					playerContainerDefault.style.zIndex = zIndex;
+					playerContainerDefault.style.position = zIndex === 10000 ? 'relative' : '';
+				}
+				if (ytdPlayer) {
+					ytdPlayer.style.zIndex = zIndex;
+					ytdPlayer.style.position = zIndex === 10000 ? 'relative' : '';
+				}
 
 				var overlay = document.getElementById('overlay_cinema');
 				if (!overlay) {
@@ -1264,9 +1258,20 @@ ImprovedTube.playerCinemaModeDisable = function () {
 		if (overlay) {
 			overlay.style.display = 'none'
 			var playerContainer = document.getElementById('player-full-bleed-container');
-			if (playerContainer) playerContainer.style.zIndex = 1;
+			if (playerContainer) {
+				playerContainer.style.zIndex = 1;
+				playerContainer.style.position = '';
+			}
 			var playerContainerDefault = document.getElementById('player-container');
-			if (playerContainerDefault) playerContainerDefault.style.zIndex = 1;
+			if (playerContainerDefault) {
+				playerContainerDefault.style.zIndex = 1;
+				playerContainerDefault.style.position = '';
+			}
+			var ytdPlayer = document.getElementById('ytd-player');
+			if (ytdPlayer) {
+				ytdPlayer.style.zIndex = 1;
+				ytdPlayer.style.position = '';
+			}
 			var cinemaModeButton = xpath('//*[@id="it-cinema-mode-button"]')[0]
 			if (cinemaModeButton) cinemaModeButton.style.opacity = 0.64
 		}
@@ -1287,9 +1292,20 @@ ImprovedTube.playerCinemaModeEnable = function () {
 			if (overlay) {
 				overlay.style.display = 'block'
 				var player = document.getElementById('player-full-bleed-container');
-				if (player) player.style.zIndex = 10000;
+				if (player) {
+					player.style.zIndex = 10000;
+					player.style.position = 'relative';
+				}
 				var playerDefault = document.getElementById('player-container');
-				if (playerDefault) playerDefault.style.zIndex = 10000;
+				if (playerDefault) {
+					playerDefault.style.zIndex = 10000;
+					playerDefault.style.position = 'relative';
+				}
+				var ytdPlayer = document.getElementById('ytd-player');
+				if (ytdPlayer) {
+					ytdPlayer.style.zIndex = 10000;
+					ytdPlayer.style.position = 'relative';
+				}
 
 				var cinemaModeButton = xpath('//*[@id="it-cinema-mode-button"]')[0]
 				if (cinemaModeButton) cinemaModeButton.style.opacity = 1
@@ -1493,6 +1509,12 @@ ImprovedTube.miniPlayer_scroll = function () {
 
 		ImprovedTube.mini_player__setSize(ImprovedTube.mini_player__width, ImprovedTube.mini_player__height, true, true);
 
+		// Re-apply disableAutoDubbing when entering mini player mode
+		// (YouTube may reset audio track when switching to mini player)
+		if (ImprovedTube.storage.disable_auto_dubbing === true) {
+			ImprovedTube.disableAutoDubbing();
+		}
+
 		window.addEventListener('mousedown', ImprovedTube.miniPlayer_mouseDown);
 		window.addEventListener('mousemove', ImprovedTube.miniPlayer_cursorUpdate);
 		window.addEventListener('resize', ImprovedTube.miniPlayer_scroll);
@@ -1508,6 +1530,12 @@ ImprovedTube.miniPlayer_scroll = function () {
 		document.documentElement.removeAttribute('it-mini-player-cursor');
 
 		window.dispatchEvent(new Event('resize'));
+
+		// Re-apply disableAutoDubbing when exiting mini player mode
+		// (YouTube may reset audio track when switching back to normal player)
+		if (ImprovedTube.storage.disable_auto_dubbing === true) {
+			ImprovedTube.disableAutoDubbing();
+		}
 
 		window.removeEventListener('mousedown', ImprovedTube.miniPlayer_mouseDown);
 		window.removeEventListener('mousemove', ImprovedTube.miniPlayer_mouseMove);
@@ -2114,6 +2142,76 @@ ImprovedTube.disableAutoDubbing = function () {
 		return fallback;
 	}
 }
+/*------------------------------------------------------------------------------
+# AUTO-SELECT PREFERRED DUBBING LANGUAGE
+------------------------------------------------------------------------------*/
+/**
+ * Automatically selects the audio track whose language code matches the user's
+ * preferred dubbing language (storage.preferred_dubbing_language).
+ * Falls back silently if no matching track is found.
+ */
+ImprovedTube.preferredDubbingLanguage = function () {
+	const preferred = (ImprovedTube.storage.preferred_dubbing_language || '').trim().toLowerCase();
+	if (!preferred) return;
+
+	const player = this.elements.player;
+	const tracks = player?.getAvailableAudioTracks();
+	if (!tracks || !tracks.length) return;
+
+	const match = tracks.find(function (track) {
+		const langCode = (track?.getLanguageInfo?.()?.languageCode || '').toLowerCase();
+		const langName = (track?.getLanguageInfo?.()?.name || '').toLowerCase();
+		return langCode.startsWith(preferred) || langName.includes(preferred);
+	});
+
+	if (match) {
+		player.setAudioTrack(match);
+	}
+};
+/*------------------------------------------------------------------------------
+# SELECT DEFAULT DUBBED LANGUAGE
+------------------------------------------------------------------------------*/
+ImprovedTube.selectDubbedLanguage = function () {
+	const self = this;
+	const selectedLang = this.storage.player_default_dubbed_language;
+	if (!selectedLang || selectedLang === 'disabled') return;
+
+	var tries = 0;
+	var maxTries = 10;
+	var interval = setInterval(function () {
+		tries++;
+		const player = self.elements.player;
+		if (!player || !player.getAvailableAudioTracks) {
+			if (tries >= maxTries) clearInterval(interval);
+			return;
+		}
+
+		const tracks = player.getAvailableAudioTracks();
+		if (!tracks || tracks.length <= 1) {
+			if (tries >= maxTries) clearInterval(interval);
+			return;
+		}
+
+		const selected = selectedLang.toLowerCase();
+
+		const targetTrack = tracks.find(function (track) {
+			const info = track?.getLanguageInfo?.();
+			if (!info) return false;
+			// audio tracks use 'id' (e.g. "en.1", "en"), not 'languageCode'
+			const trackId = (info.id || '').toLowerCase();
+			return trackId === selected ||
+				trackId.startsWith(selected + '.') ||
+				trackId.startsWith(selected + '-');
+		});
+
+		if (targetTrack) {
+			player.setAudioTrack(targetTrack);
+			clearInterval(interval);
+		} else if (tries >= maxTries) {
+			clearInterval(interval);
+		}
+	}, 300);
+};
 /*------------------------------------------------------------------------------
 # JUMP TO THE NEXT KEY SCENE
 ------------------------------------------------------------------------------*/
