@@ -1,5 +1,6 @@
 {
-  "preferredDubbingLanguage": {
+  "dontShortenTitles": { 	"message": "Full Video Titles (don't shorten)" },
+	 "preferredDubbingLanguage": {
 		"message": "Preferred dubbing language"
 	},
   "hideSuggestedAction": {
@@ -148,6 +149,9 @@
   },
   "autoplayDisable": {
     "message": "Force Autoplay Off"
+  },
+  "autoContinueWatching": {
+    "message": "Auto-accept «Continue watching?»"
   },
   "autoPlayNextShort": {
     "message": "Shorts up next autoplay"
@@ -443,6 +447,9 @@
   "disableAutoDubbing": {
     "message": "Disable auto dubbing"
   },
+  "hideAutoDubbedOptions": {
+    "message": "Hide auto-dubbed options in menu"
+  },
   "disabled": {
     "message": "Disabled"
   },
@@ -583,6 +590,9 @@
   },
   "fullScreenQuality": {
     "message": "Fullscreen quality"
+  },
+  "playlistQuality": {
+    "message": "Playlist quality"
   },
   "fullscreenReturn": {
     "message": "Fullscreen return"
@@ -1241,6 +1251,9 @@
   "removePlayables": {
     "message": "Hide playables"
   },
+  "removeTopLiveGames": {
+    "message": "Hide 'Top live games' on the home page"
+  },
   "removeRelatedSearchResults": {
     "message": "Remove related search results"
   },
@@ -1393,6 +1406,12 @@
   },
   "Sidebar_simple_alternative": {
     "message": "Sidebar (simple alternative)"
+  },
+  "sidePanels": {
+    "message": "Side panels (Watch later, In this video, ...)"
+  },
+  "sidePanelsOnlyOneExpanded": {
+    "message": "Only one expanded at a time"
   },
   "smartSpeed": {
     "message": "Speed up lesser-watched sections"
@@ -1687,5 +1706,8 @@
   },
   "smartSpeedWhitelisted": {
     "message": "Channel Whitelisted for Smart Speed!"
+  },
+  "autoVideoRecovery": {
+  "message": "Auto video recovery"
   }
 }

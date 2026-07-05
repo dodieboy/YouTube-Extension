@@ -27,14 +27,16 @@ ImprovedTube.forcedPlayVideoFromTheBeginning = function () {
 AUTOPAUSE WHEN SWITCHING TABS
 ------------------------------------------------------------------------------*/
 ImprovedTube.playerAutopauseWhenSwitchingTabs = function () {
-	const player = this.elements.player;
+	const player = this.elements.player,
+		video = this.elements.video,
+		isVisibleTab = document.visibilityState === 'visible' && document.hasFocus();
 
-	if (this.storage.player_autopause_when_switching_tabs && player) {
-		if (this.focus && this.played_before_blur && this.elements.video.paused) {
+	if (this.storage.player_autopause_when_switching_tabs && player && video) {
+		if (this.focus && isVisibleTab && this.played_before_blur && video.paused) {
 			player.playVideo();
 		} else {
-			this.played_before_blur = !this.elements.video.paused;
-			if (!this.elements.video.paused) {
+			this.played_before_blur = !video.paused;
+			if (!video.paused) {
 				player.pauseVideo();
 			}
 		}
@@ -441,7 +443,16 @@ ImprovedTube.playerAutofullscreen = function () {
 QUALITY
 ------------------------------------------------------------------------------*/
 ImprovedTube.playerQuality = function (quality = this.storage.player_quality) {
-	let player = this.elements.player;
+  var playlistQ = this.storage.player_quality_playlist;
+  var isPlaylist = !!(
+    new URLSearchParams(location.search).has('list') ||
+    document.querySelector('ytd-playlist-panel-renderer')
+  );
+  if (isPlaylist && playlistQ && playlistQ !== 'disabled') {
+    quality = playlistQ;
+  }
+
+  let player = this.elements.player;
 	if (quality && quality !== 'disabled'
 		&& player && player.getAvailableQualityLevels
 		&& (!player.dataset.defaultQuality || player.dataset.defaultQuality != quality)) {
@@ -519,10 +530,14 @@ ImprovedTube.playerQualityFullScreen = function () {
      document.mozFullScreen
    );
 
-   var fsq=ImprovedTube.storage.full_screen_quality;
-   var target = isFs ? fsq : ImprovedTube.storage.player_quality;
-
-
+   var fsq = ImprovedTube.storage.full_screen_quality;
+	 var playlistQ = ImprovedTube.storage.player_quality_playlist;
+	 var isPlaylist = !!(
+    new URLSearchParams(location.search).has('list') ||
+    document.querySelector('ytd-playlist-panel-renderer') ||
+    document.querySelector('#playlist')
+		);
+	 var target = isFs ? fsq : (isPlaylist && playlistQ && playlistQ !== 'disabled') ? playlistQ : ImprovedTube.storage.player_quality;
 
    var map = {
      '144p':'tiny','240p':'small','360p':'medium','480p':'large',
@@ -533,21 +548,29 @@ ImprovedTube.playerQualityFullScreen = function () {
    var desired = map[target] || target;
 
    function applyQuality(){
-		 var player = ImprovedTube.elements && ImprovedTube.elements.player;
-   		if (!player) return;
+    var isPlaylist = !!(
+        new URLSearchParams(location.search).has('list') ||
+        document.querySelector('ytd-playlist-panel-renderer')
+    );
+    var finalTarget = isFs ? fsq
+        : (isPlaylist && playlistQ && playlistQ !== 'disabled') ? playlistQ
+        : ImprovedTube.storage.player_quality;
+    var desired = map[finalTarget] || finalTarget;
 
-   		if (typeof ImprovedTube.playerQuality === 'function') {
-     	ImprovedTube.playerQuality(desired);
-
-     	return;
-		
-   }
-   try { if (typeof player.setPlaybackQualityRange === 'function') player.setPlaybackQualityRange(desired, desired); } catch(e) {console.log(e)}
-   try { if (typeof player.setPlaybackQuality === 'function') player.setPlaybackQuality(desired); } catch(e) {console.log(e)}
- }
+    var player = ImprovedTube.elements && ImprovedTube.elements.player;
+    if (!player) return;
+    if (typeof ImprovedTube.playerQuality === 'function') {
+        ImprovedTube.playerQuality(desired);
+        return;
+    }
+    try { if (typeof player.setPlaybackQualityRange === 'function') player.setPlaybackQualityRange(desired, desired); } catch(e) {console.log(e)}
+    try { if (typeof player.setPlaybackQuality === 'function') player.setPlaybackQuality(desired); } catch(e) {console.log(e)}
+}
 
   setTimeout(applyQuality, 300);
-  setTimeout(applyQuality, 800);
+	setTimeout(applyQuality, 800);
+	setTimeout(applyQuality, 1500);
+	setTimeout(applyQuality, 3000);
    }
 
   
@@ -1046,8 +1069,14 @@ ImprovedTube.playerRotateButton = function () {
 
 				if (rotate == 90 || rotate == 270) {
 					var is_vertical_video = video.videoHeight > video.videoWidth;
-
-					transform += ' scale(' + (is_vertical_video ? video.clientWidth : video.clientHeight) / (is_vertical_video ? video.clientHeight : video.clientWidth) + ')';
+										if (
+										//		( this.storage.player_cinema_mode_button === true ||  this.storage.player_auto_hide_cinema_mode_when_paused === true ||  this.storage.player_auto_cinema_mode === true 	) 
+											//  && document.querySelector('#overlay_cinema') 
+											document.querySelector("ytd-watch-flexy[theater]") && document.querySelector('ytd-app:not([player-fullscreen_]) ytd-watch-flexy:not([fullscreen])')
+											) { transform += ' scale(' + (is_vertical_video ? video.clientWidth : video.clientHeight) / (is_vertical_video ? video.clientHeight : video.clientWidth) + ')';
+													} else {
+											transform += ' scale(' + (is_vertical_video ? player.clientWidth : player.clientHeight) / (is_vertical_video ? player.clientHeight : player.clientWidth) + ')';
+										}					
 				}
 
 				if (!ImprovedTube.elements.buttons['it-rotate-styles']) {
@@ -1128,24 +1157,17 @@ FIT-TO-WIN BUTTON
 ------------------------------------------------------------------------------*/
 ImprovedTube.playerFitToWinButton = function () {
 	if (this.storage.player_fit_to_win_button === true && (/watch\?/.test(location.href))) {
-	let tempContainer = document.createElement("div");
-	let svg;
-	if (typeof trustedTypes !== 'undefined' && typeof trustedTypes.createPolicy === 'function') {
-		// Create a Trusted Type policy
-		const policy = trustedTypes.createPolicy('default', {
-			createHTML: (string) => string,
-		});
-
-		// Use the policy to set innerHTML
-		tempContainer.innerHTML = policy.createHTML(`
-		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="ftw-icon">
-		<path d="M21 3 9 15"/><path d="M12 3H3v18h18v-9"/><path d="M16 3h5v5"/><path d="M14 15H9v-5"/></svg>`);
-
-		// Ensure the SVG element is correctly parsed
-        	svg = tempContainer.querySelector('svg');
-	} else {tempContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="ftw-icon">
- 		<path d="M21 3 9 15"/><path d="M12 3H3v18h18v-9"/><path d="M16 3h5v5"/><path d="M14 15H9v-5"/></svg>`;
-		svg = tempContainer.firstChild;}
+		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+		svg.setAttribute('width', '24');
+		svg.setAttribute('height', '24');
+		svg.setAttribute('viewBox', '0 0 24 24');
+		svg.setAttribute('fill', 'none');
+		svg.setAttribute('stroke', 'currentColor');
+		svg.setAttribute('stroke-width', '2');
+		svg.setAttribute('id', 'ftw-icon');
+		path.setAttribute('d', 'M21 3 9 15 M12 3H3v18h18v-9 M16 3h5v5 M14 15H9v-5');
+		svg.appendChild(path);
 		this.createPlayerButton({
 			id: 'it-fit-to-win-player-button',
 			child: svg,
@@ -2142,6 +2164,41 @@ ImprovedTube.disableAutoDubbing = function () {
 		return fallback;
 	}
 }
+
+/*------------------------------------------------------------------------------
+# HIDE AUTO-DUBBED MENU ITEMS
+------------------------------------------------------------------------------*/
+ImprovedTube.observeAutoDubbedMenu = function () {
+		if (ImprovedTube.storage.hide_auto_dubbed_options !== true) return;
+ImprovedTube.hideAutoDubbedMenuItems = function () {
+    const panel = document.querySelector('.ytp-panel .ytp-panel-menu');
+    if (!panel) return;
+
+    const items = panel.querySelectorAll('.ytp-menuitem');
+    let autoDubbedSection = false;
+
+    items.forEach(function (item) {
+        if (item.classList.contains('ytp-menuitem-section-header')) {
+            item.style.display = 'none';
+            autoDubbedSection = true;
+        } else if (autoDubbedSection) {
+            item.style.display = 'none';
+        }
+    });
+};	
+    const observer = new MutationObserver(function () {
+        const panel = document.querySelector('.ytp-panel .ytp-panel-menu');
+        if (panel) {
+            ImprovedTube.hideAutoDubbedMenuItems();
+        }
+    });
+
+    const playerContainer = document.querySelector('#movie_player');
+    if (playerContainer) {
+        observer.observe(playerContainer, { childList: true, subtree: true });
+    }
+};
+
 /*------------------------------------------------------------------------------
 # AUTO-SELECT PREFERRED DUBBING LANGUAGE
 ------------------------------------------------------------------------------*/
@@ -2954,19 +3011,63 @@ window.addEventListener('keydown', (e) => {
 });
 
 /*------------------------------------------------------------------------------
-Hide Pause Overlay
+AUTO-ACCEPT "CONTINUE WATCHING?"
 ------------------------------------------------------------------------------*/
-function hidePauseOverlay(){
-  if(!document.getElementById('it-hide-pause-overlay')){
-    const s=document.createElement('style');
-    s.id='it-hide-pause-overlay';
-    s.textContent='.ytp-pause-overlay-container,.ytp-autonav-endscreen-container,.ytp-endscreen-content{display:none!important}';
-    document.documentElement.appendChild(s);
-  }
-  const f=()=>document.querySelectorAll('tp-yt-paper-dialog[role="dialog"]').forEach(e=>/continue watching|video paused/i.test(e.textContent)&&e.remove());
-  f();
-  if(!window.hidePauseOverlayObserver){
-    window.hidePauseOverlayObserver=new MutationObserver(f);
-    window.hidePauseOverlayObserver.observe(document.body,{childList:true,subtree:true});
-  }
-}
+ImprovedTube.playerAutoContinueWatching = function () {
+	const enabled = this.storage.player_auto_continue_watching !== false
+		|| this.storage.Hide_Pause_Overlay === true;
+
+	if (!enabled) {
+		if (this._autoContinueWatchingObserver) {
+			this._autoContinueWatchingObserver.disconnect();
+			this._autoContinueWatchingObserver = null;
+		}
+		return;
+	}
+
+	const continueWatchingPattern = /continue watching|video paused|still watching|are you still watching/i;
+
+	const acceptDialog = function () {
+		document.querySelectorAll('tp-yt-paper-dialog[role="dialog"], ytd-modal-with-title-and-button-renderer').forEach(function (dialog) {
+			const text = dialog.textContent || '';
+
+			if (!continueWatchingPattern.test(text)) {
+				return;
+			}
+
+			let button = dialog.querySelector('#confirm-button button, #confirm-button tp-yt-paper-button, ytd-button-renderer#confirm-button button, tp-yt-paper-button#button');
+
+			if (!button) {
+				dialog.querySelectorAll('button, tp-yt-paper-button, ytd-button-renderer button').forEach(function (candidate) {
+					const label = (candidate.textContent || candidate.getAttribute('aria-label') || '').trim();
+
+					if (!button && /^(yes|continue|ok)$/i.test(label)) {
+						button = candidate;
+					}
+				});
+			}
+
+			if (button) {
+				button.click();
+
+				const player = ImprovedTube.elements.player;
+
+				if (player && typeof player.playVideo === 'function' && player.getPlayerState() !== 1) {
+					try {
+						player.playVideo();
+					} catch (error) { }
+				}
+			}
+		});
+	};
+
+	acceptDialog();
+
+	if (!this._autoContinueWatchingObserver) {
+		this._autoContinueWatchingObserver = new MutationObserver(acceptDialog);
+		this._autoContinueWatchingObserver.observe(document.documentElement, {
+			childList: true,
+			subtree: true
+		});
+	}
+};
