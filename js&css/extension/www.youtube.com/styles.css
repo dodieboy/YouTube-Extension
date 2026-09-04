@@ -235,19 +235,20 @@ html[it-player-fit-to-win-button=true][data-page-type=video] #ftw-icon path {
 	line-height: 15px !important;
 	position: fixed !important;
 	padding: 5px 9px;
-	transform: translate(-50%, -150%) !important;
+	transform: translate(0, -150%) !important;
 	pointer-events: none !important;
 	color: #eee !important;
 	border-radius: 2px !important;
 	background-color: rgba(28, 28, 28, .9) !important;
 	text-shadow: 0 0 2px rgb(0, 0, 0, .5) !important;
+	z-index: 10001 !important;
 }
 
 body.no-scroll .it-player-button--tooltip {
 	font-size: 20px !important;
 	line-height: 22px !important;
 	padding: 8px 9px !important;
-	transform: translate(-50%, -75%) !important;
+	transform: translate(0, -75%) !important;
 }
 
 /*------------------------------------------------------------------------------
@@ -283,7 +284,7 @@ body.no-scroll .it-player-button--tooltip {
 	fill: var(--yt-spec-icon-inactive);
 	align-self: center;
 }
-  
+
 .it-playlist-copy-video-id:hover::after {
 	content: attr(data-tooltip);
 	transform: translateX(-50%);
@@ -732,8 +733,8 @@ html[it-theme=plain] #cinematics {
 }
 
 /* Background-color update */
-html[it-theme]:not([it-theme=default]) ytd-app, 
-html[it-theme]:not([it-theme=default]) ytd-browse-view, 
+html[it-theme]:not([it-theme=default]) ytd-app,
+html[it-theme]:not([it-theme=default]) ytd-browse-view,
 html[it-theme]:not([it-theme=default]) ytd-watch-flexy,
 html[it-theme]:not([it-theme=default]) #page,
 html[it-theme]:not([it-theme=default]) #content { background-color: var(--yt-spec-base-background) !important; };
@@ -2375,6 +2376,6 @@ html[it-subscriptions-list-layout="true"][it-pathname="/feed/subscriptions"] ytd
 html[it-theme=dark] [dark],
 html[it-theme=dark]:not([it-schedule=system_peference_dark]):not([it-schedule=system_peference_light]),
 html[it-theme=dark][data-system-color-scheme=dark][it-schedule=system_peference_dark],
-html[it-theme=dark][data-system-color-scheme=light][it-schedule=system_peference_light] { 
+html[it-theme=dark][data-system-color-scheme=light][it-schedule=system_peference_light] {
 .it-add-channel-to-blocklist { 	--yt-spec-text-secondary: #aaa !important; }
 }
